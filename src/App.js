@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import './styles/App.css';
 import Chart from './components/Chart';
 import PlainInfo from './components/PlainInfo';
@@ -79,7 +80,7 @@ class App extends Component {
   handleEndDateChange(e) {
     if (e.target.value !== 'none'){
       this.setState({endDateValue: e.target.value}, () => {
-        this.renderResults();
+        this.fetchResults();
       });
     } else {
       this.setState({
@@ -99,7 +100,7 @@ class App extends Component {
     }
   }
 
-  renderResults(){
+  fetchResults(){
     const results = this.mettrics.filter(mettric => mettric.time >= this.state.startDateValue && mettric.time <= this.state.endDateValue)
     .map(result=>({'date': result.time, 'value': result[this.state.paramValue], 'unit': this.setUnit(this.state.paramValue)}));
     const values = this.mettrics.filter(mettric => mettric.time >= this.state.startDateValue && mettric.time <= this.state.endDateValue)
@@ -109,11 +110,12 @@ class App extends Component {
       results,
       average
     });
+    this.props.dispatch({type: 'FETCH_RESULTS', results});
   }
 
   renderPlainInfoComponent(){
     if (this.state.results.length > 0){
-      return <PlainInfo values={ this.state.results } param={ this.state.paramValue } average={ this.state.average }></PlainInfo>
+      return <PlainInfo values={ this.props.data } param={ this.state.paramValue } average={ this.state.average }></PlainInfo>
     } else {
       return null;
     }
@@ -121,7 +123,7 @@ class App extends Component {
 
   renderChartComponent(){
     if (this.state.results.length > 0){
-      return <Chart data={ this.state.results } param={ this.state.paramValue } average={ this.state.average }></Chart>
+      return <Chart data={ this.props.data } param={ this.state.paramValue } average={ this.state.average }></Chart>
     } else {
       return null;
     }
@@ -163,4 +165,8 @@ class App extends Component {
   }
 }
 
-export default App;
+const mapStateToProps = (state) => ({
+  data: state.data
+});
+
+export default connect(mapStateToProps)(App);
